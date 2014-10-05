@@ -2,83 +2,93 @@ package com.hsifeulbhsifder.sigma.engine.math;
 
 public interface Vector<T extends Vector<T>> {
 
-	T copy ();
+	T copy();
 
-	float length ();
+	float length();
 
-	float length2 ();
+	float length2();
 
-	T limit (float limit);
+	T limit(float limit);
 
-	T clamp (float min, float max);
+	T clamp(float min, float max);
 
-	T set (T v);
-
-	T normalize ();
-
-	T add (T v);
+	T set(final T v);
 	
-	T sub (T v);
+	T set(float s);
 
-	T mul (T v);
+	T normalize();
+
+	T add(final T v);
+
+	T sub(final T v);
+
+	T mul(final T v);
+
+	T div(final T v);
+
+	T add(float s);
+
+	T sub(float s);
+
+	T mul(float s);
+
+	T div(float s);
+
+	T mulAdd(final T v, float s);
+
+	T mulAdd(final T vA, T vM);
+
+	T setZero();
+
+	float dot(final T v);
 	
-	T div (T v);
+	float dot(float s);
+
+	T reflect(final T normal);
+
+	float distance(final T v);
+
+	float distance2(final T v);
+
+	T lerp(final T target, float alpha);
 	
-	T add (float v);
+	float max();
+
+	float min();
 	
-	T sub (float v);
+	boolean isUnit();
+
+	boolean isUnit(final float margin);
+
+	boolean isZero();
+
+	boolean isZero(final float margin);
+
+	boolean isOnLine(final T other, float epsilon);
+
+	boolean isOnLine(final T other);
+
+	boolean isCollinear(final T other, float epsilon);
+
+	boolean isCollinear(final T other);
+
+	boolean isCollinearOpposite(final T other, float epsilon);
+
+	boolean isCollinearOpposite(final T other);
+
+	boolean isPerpendicular(final T other);
+
+	boolean isPerpendicular(final T other, float epsilon);
+
+	boolean hasSameDirection(final T other);
+
+	boolean hasOppositeDirection(final T other);
+
+	boolean epsilonEquals(T other, float epsilon);
+
+	float x();
 	
-	T mul (float v);
+	float y();
 	
-	T div (float v);
-	
-	float dot (T v);
-
-	float cross (T v);
-
-	T reflect (T v);
-
-	float dst (T v);
-
-	float dst2 (T v);
-
-	T lerp (T target, float alpha);
-
-	boolean isUnit ();
-
-	boolean isUnit (final float margin);
-
-	boolean isZero ();
-
-	boolean isZero (final float margin);
-
-	boolean isOnLine (T other, float epsilon);
-
-	boolean isOnLine (T other);
-
-	boolean isCollinear (T other, float epsilon);
-
-	boolean isCollinear (T other);
-
-	boolean isCollinearOpposite (T other, float epsilon);
-
-	boolean isCollinearOpposite (T other);
-
-	boolean isPerpendicular (T other);
-
-	boolean isPerpendicular (T other, float epsilon);
-
-	boolean hasSameDirection (T other);
-
-	boolean hasOppositeDirection (T other);
-
-	boolean epsilonEquals (T other, float epsilon);
-
-	T mulAdd (T v, float scalar);
-
-	T mulAdd (T v, T mulVec);
-
-	T setZero ();
-	
-	
+	float z();
 }
