@@ -19,8 +19,8 @@ public class Mat4f {
 	public static final int M32 = 11;
 	public static final int M33 = 15;
 
-	final float t[] = new float[16];
-	final float m[] = new float[16];
+	public final float t[] = new float[16];
+	public final float m[] = new float[16];
 
 	public Mat4f() {
 		m[M00] = 1f;

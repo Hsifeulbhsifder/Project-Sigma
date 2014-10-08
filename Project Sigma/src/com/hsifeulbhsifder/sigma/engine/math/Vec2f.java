@@ -2,8 +2,8 @@ package com.hsifeulbhsifder.sigma.engine.math;
 
 public class Vec2f implements Vector<Vec2f> {
 
-	public static final Vec2f X = new Vec2f(1, 0);
-	public static final Vec2f Y = new Vec2f(0, 1);
+	public static final Vec2f X = new Vec2f(1,0);
+	public static final Vec2f Y = new Vec2f(0,1);
 	public static final Vec2f ZERO = new Vec2f();
 
 	private float x;
@@ -24,7 +24,7 @@ public class Vec2f implements Vector<Vec2f> {
 	public Vec2f(final Vec2f v) {
 		this.set(v);
 	}
-
+	
 	@Override
 	public Vec2f copy() {
 		return new Vec2f(this);
@@ -124,8 +124,16 @@ public class Vec2f implements Vector<Vec2f> {
 
 	@Override
 	public Vec2f div(final Vec2f v) {
-		x /= v.x;
-		y /= v.y;
+		float divx = 1f;
+		float divy = 1f;
+		if(!MC.isZero(v.x)) {
+			divx = v.x;
+		}
+		if(!MC.isZero(v.y)) {
+			divy = v.y;
+		}
+		x /= divx;
+		y /= divy;
 		return this;
 	}
 
@@ -152,8 +160,12 @@ public class Vec2f implements Vector<Vec2f> {
 
 	@Override
 	public Vec2f div(float s) {
-		x /= s;
-		y /= s;
+		float div = 1f;
+		if(!MC.isZero(s)) {
+			div = s;
+		}
+		x /= div;
+		y /= div;
 		return this;
 	}
 
@@ -176,8 +188,16 @@ public class Vec2f implements Vector<Vec2f> {
 	}
 
 	public Vec2f div(float x, float y) {
-		this.x /= x;
-		this.y /= y;
+		float divx = 1f;
+		float divy = 1f;
+		if(!MC.isZero(x)) {
+			divx = x;
+		}
+		if(!MC.isZero(y)) {
+			divy = y;
+		}
+		this.x /= divx;
+		this.y /= divy;
 		return this;
 	}
 
@@ -394,8 +414,7 @@ public class Vec2f implements Vector<Vec2f> {
 
 	@Override
 	public String toString() {
-		return "(" + x + ", " + y + ")::" + length() + "m [N" + angle()
-				+ "degE]";
+		return "(" + x + ", " + y + ")";
 	}
 
 	@Override

@@ -166,12 +166,19 @@ public class Vec3f implements Vector<Vec3f> {
 	}
 
 	public Vec3f div(float x, float y, float z) {
-		if (x == 0 || y == 0 || z == 0) {
-			// TODO: add exception handling
-			return this;
-		} else {
-			return this.set(this.x / x, this.y / y, this.z / z);
+		float dx = 1f;
+		float dy = 1f;
+		float dz = 1f;
+		if (!MC.isZero(x)) {
+			dx = x;
 		}
+		if (!MC.isZero(y)) {
+			dy = y;
+		}
+		if (!MC.isZero(z)) {
+			dz = z;
+		}
+		return this.set(this.x / dx, this.y / dy, this.z / dz);
 	}
 
 	@Override
