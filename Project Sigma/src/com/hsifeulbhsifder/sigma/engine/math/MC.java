@@ -2,6 +2,11 @@ package com.hsifeulbhsifder.sigma.engine.math;
 
 import java.util.Random;
 
+/**
+ * Performance enhanced math class
+ * @author Zaeem
+ * @version 1.0
+ */
 public class MC {
 	// Sin and Cos
 		static public final float FLOAT_ROUNDING_ERROR = 0.000001f; // 32 bits
@@ -34,27 +39,27 @@ public class MC {
 							* degreesToRadians);
 			}
 		}
-
+		/** @return the sine in radians from a lookup table. */
 		static public float sin(float radians) {
 			return Sin.table[(int) (radians * radToIndex) & SIN_MASK];
 		}
-
+		/** @return the cosine in radians from a lookup table. */
 		static public float cos(float radians) {
 			return Sin.table[(int) ((radians + PI / 2) * radToIndex) & SIN_MASK];
 		}
-
+		/** @return the sine in degrees from a lookup table. */
 		static public float sinDeg(float degrees) {
 			return Sin.table[(int) (degrees * degToIndex) & SIN_MASK];
 		}
-
+		/** @return the cosine in degrees from a lookup table. */
 		static public float cosDeg(float degrees) {
 			return Sin.table[(int) ((degrees + 90) * degToIndex) & SIN_MASK];
 		}
-		
+		/** @return the angle in radians from degrees. */
 		static public final float toR(float deg) {
 			return deg * degreesToRadians;
 		}
-		
+		/** @return the angle in degrees from radians. */
 		static public final float toD(float rad) {
 			return rad * radiansToDegrees;
 		}
@@ -80,7 +85,7 @@ public class MC {
 				}
 			}
 		}
-
+		/** @return atan2 in radians from a lookup table. */
 		static public float atan2(float y, float x) {
 			float add, mul;
 			if (x < 0) {
@@ -112,51 +117,71 @@ public class MC {
 		// Random
 
 		static public Random random = new Randomizer();
-
+		/** @return a random number between 0 (inclusive) and the specified value (inclusive). */
 		static public int random(int range) {
 			return random.nextInt(range + 1);
 		}
-
+		/** @return a random number between start (inclusive) and end (inclusive). */
 		static public int random(int start, int end) {
 			return start + random.nextInt(end - start + 1);
 		}
-
+		/** @return a random boolean value. */
 		static public boolean randomBoolean() {
 			return random.nextBoolean();
 		}
-
+		/** @return true if a random value between 0 and 1 is less than the specified value. */
 		static public boolean randomBoolean(float chance) {
 			return MC.random() < chance;
 		}
-
+		/** @return random number between 0.0 (inclusive) and 1.0 (exclusive). */
 		static public float random() {
 			return random.nextFloat();
 		}
-
+		/** @return a random number between 0 (inclusive) and the specified value (exclusive). */
 		static public float random(float range) {
 			return random.nextFloat() * range;
 		}
-
+		/** @return a random number between start (inclusive) and end (exclusive). */
 		static public float random(float start, float end) {
 			return start + random.nextFloat() * (end - start);
 		}
-		
+		/** @return -1 or 1, randomly. */
 		static public int randomSign () {
 			return 1 | (random.nextInt() >> 31);
 		}
-
+		/** @return a triangularly distributed random number 
+		 * between -1.0 (exclusive) and 1.0 (exclusive), where values around zero are
+		 * more likely.
+		 * <p>
+		 * This is an optimized version of 
+		 * {@link #randomTriangular(float, float, float) randomTriangular(-1, 1, 0)} */
 		public static float randomTriangular () {
 			return random.nextFloat() - random.nextFloat();
 		}
-
+		/** @return a triangularly distributed random number 
+		 * between {@code -max} (exclusive) and {@code max} (exclusive), where values
+		 * around zero are more likely.
+		 * <p>
+		 * This is an optimized version of 
+		 * {@link #randomTriangular(float, float, float) randomTriangular(-max, max, 0)}
+		 * @param max - the upper limit */
 		public static float randomTriangular (float max) {
 			return (random.nextFloat() - random.nextFloat()) * max;
 		}
-
+		/** @return a triangularly distributed random number between {@code min} (inclusive) and {@code max} (exclusive), where the
+		 * {@code mode} argument defaults to the midpoint between the bounds, giving a symmetric distribution.
+		 * <p>
+		 * This method is equivalent of {@link #randomTriangular(float, float, float) randomTriangular(min, max, (max - min) * .5f)}
+		 * @param min - the lower limit
+		 * @param max - the upper limit */
 		public static float randomTriangular (float min, float max) {
 			return randomTriangular(min, max, (max - min) * .5f);
 		}
-
+		/** @return a triangularly distributed random number between {@code min} (inclusive) and {@code max} (exclusive), where values
+		 * around {@code mode} are more likely.
+		 * @param min - the lower limit
+		 * @param max - the upper limit
+		 * @param mode the point around which the values are more likely */
 		public static float randomTriangular (float min, float max, float mode) {
 			float u = random.nextFloat();
 			float d = max - min;
@@ -165,7 +190,7 @@ public class MC {
 		}
 
 		// Powers of two
-
+		/** @return the next power of two. Returns the specified value if the value is already a power of two. */
 		static public int nextPowerOfTwo(int value) {
 			if (value == 0)
 				return 1;
@@ -209,7 +234,7 @@ public class MC {
 		}
 		
 		// Linear Interpolation
-
+		/** Linearly interpolates between fromValue to toValue on progress position. */
 		static public float lerp(float fromValue, float toValue, float progress) {
 			return fromValue + (toValue - fromValue) * progress;
 		}
@@ -221,52 +246,73 @@ public class MC {
 		static private final double CEIL = 0.9999999;
 		static private final double BIG_ENOUGH_CEIL = 16384.999999999996;
 		static private final double BIG_ENOUGH_ROUND = BIG_ENOUGH_INT + 0.5f;
-
+		/** @return the largest integer less than or equal to the specified float. This method will only properly floor floats from
+		 * -(2^14) to (Float.MAX_VALUE - 2^14). */
 		static public int floor(float x) {
 			return (int) (x + BIG_ENOUGH_FLOOR) - BIG_ENOUGH_INT;
 		}
-
+		/** @return the largest integer less than or equal to the specified float. This method will only properly floor floats that are
+		 * positive. Note this method simply casts the float to int. */
 		static public int floorPositive(float x) {
 			return (int) x;
 		}
 
-		static public int ceil(float x) {
-			return (int) (x + BIG_ENOUGH_CEIL) - BIG_ENOUGH_INT;
+		/** @return the smallest integer greater than or equal to the specified float. This method will only properly ceil floats from
+		 * -(2^14) to (Float.MAX_VALUE - 2^14). */
+		static public int ceil (float x) {
+			return (int)(x + BIG_ENOUGH_CEIL) - BIG_ENOUGH_INT;
 		}
 
-		static public int ceilPositive(float x) {
-			return (int) (x + CEIL);
+		/** @return the smallest integer greater than or equal to the specified float. This method will only properly ceil floats that
+		 * are positive. */
+		static public int ceilPositive (float x) {
+			return (int)(x + CEIL);
 		}
 
-		static public int round(float x) {
-			return (int) (x + BIG_ENOUGH_ROUND) - BIG_ENOUGH_INT;
+		/** @return the closest integer to the specified float. This method will only properly round floats from -(2^14) to
+		 * (Float.MAX_VALUE - 2^14). */
+		static public int round (float x) {
+			return (int)(x + BIG_ENOUGH_ROUND) - BIG_ENOUGH_INT;
 		}
 
-		static public int roundPositive(float x) {
-			return (int) (x + 0.5f);
+		/** @return the closest integer to the specified float. This method will only properly round floats that are positive. */
+		static public int roundPositive (float x) {
+			return (int)(x + 0.5f);
 		}
 
-		static public boolean isZero(float value) {
+		/** @return true if the value is zero (using the default tolerance as upper bound) */
+		static public boolean isZero (float value) {
 			return Math.abs(value) <= FLOAT_ROUNDING_ERROR;
 		}
 
-		static public boolean isZero(float value, float tolerance) {
+		/** @return true if the value is zero.
+		 * @param tolerance - represent an upper bound below which the value is considered zero. */
+		static public boolean isZero (float value, float tolerance) {
 			return Math.abs(value) <= tolerance;
 		}
 
-		static public boolean isEqual(float a, float b) {
+		/** @return true if a is nearly equal to b. The function uses the default floating error tolerance.
+		 * @param a - the first value.
+		 * @param b - the second value. */
+		static public boolean isEqual (float a, float b) {
 			return Math.abs(a - b) <= FLOAT_ROUNDING_ERROR;
 		}
 
-		static public boolean isEqual(float a, float b, float tolerance) {
+		/** @return true if a is nearly equal to b.
+		 * @param a - the first value.
+		 * @param b - the second value.
+		 * @param tolerance represent an upper bound below which the two values are considered equal. */
+		static public boolean isEqual (float a, float b, float tolerance) {
 			return Math.abs(a - b) <= tolerance;
 		}
 
-		static public float log(float a, float x) {
-			return (float) (Math.log(x) / Math.log(a));
+		/** @return the logarithm of x with base a */
+		static public float log (float a, float x) {
+			return (float)(Math.log(x) / Math.log(a));
 		}
 
-		static public float log2(float x) {
+		/** @return the logarithm of x with base 2 */
+		static public float log2 (float x) {
 			return log(2, x);
 		}
 		

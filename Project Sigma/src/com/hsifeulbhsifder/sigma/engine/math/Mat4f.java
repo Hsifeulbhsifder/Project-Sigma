@@ -1,27 +1,120 @@
 package com.hsifeulbhsifder.sigma.engine.math;
 
+import com.hsifeulbhsifder.sigma.engine.utils.SigmaException;
+
+/**
+ * Encapsulates a <a
+ * href="http://en.wikipedia.org/wiki/Row-major_order#Column-major_order">column
+ * major</a> 4 by 4 matrix. Like the {@link Vec3f} class it allows the chaining
+ * of methods by returning a reference to itself. For example:
+ * 
+ * <pre>
+ * Mat4f mat = new Mat4f().initIdentity().mul(
+ * 		new Mat4f().initOrtho(-40, 40, -40, 40, -40, 40));
+ * </pre>
+ * 
+ * @author Zaeem
+ * @version 1.0
+ */
 public class Mat4f {
 
+	/**
+	 * XX: Typically the unrotated X component for scaling, also the cosine of
+	 * the angle when rotated on the Y and/or Z axis. On Vector3 multiplication
+	 * this value is multiplied with the source X component and added to the
+	 * target X component.
+	 */
 	public static final int M00 = 0;
+	/**
+	 * XY: Typically the negative sine of the angle when rotated on the Z axis.
+	 * On Vector3 multiplication this value is multiplied with the source Y
+	 * component and added to the target X component.
+	 */
 	public static final int M01 = 4;
+	/**
+	 * XZ: Typically the sine of the angle when rotated on the Y axis. On
+	 * Vector3 multiplication this value is multiplied with the source Z
+	 * component and added to the target X component.
+	 */
 	public static final int M02 = 8;
+	/**
+	 * XW: Typically the translation of the X component. On Vector3
+	 * multiplication this value is added to the target X component.
+	 */
 	public static final int M03 = 12;
+	/**
+	 * YX: Typically the sine of the angle when rotated on the Z axis. On
+	 * Vector3 multiplication this value is multiplied with the source X
+	 * component and added to the target Y component.
+	 */
 	public static final int M10 = 1;
+	/**
+	 * YY: Typically the unrotated Y component for scaling, also the cosine of
+	 * the angle when rotated on the X and/or Z axis. On Vector3 multiplication
+	 * this value is multiplied with the source Y component and added to the
+	 * target Y component.
+	 */
 	public static final int M11 = 5;
+	/**
+	 * YZ: Typically the negative sine of the angle when rotated on the X axis.
+	 * On Vector3 multiplication this value is multiplied with the source Z
+	 * component and added to the target Y component.
+	 */
 	public static final int M12 = 9;
+	/**
+	 * YW: Typically the translation of the Y component. On Vector3
+	 * multiplication this value is added to the target Y component.
+	 */
 	public static final int M13 = 13;
+	/**
+	 * ZX: Typically the negative sine of the angle when rotated on the Y axis.
+	 * On Vector3 multiplication this value is multiplied with the source X
+	 * component and added to the target Z component.
+	 */
 	public static final int M20 = 2;
+	/**
+	 * ZY: Typical the sine of the angle when rotated on the X axis. On Vector3
+	 * multiplication this value is multiplied with the source Y component and
+	 * added to the target Z component.
+	 */
 	public static final int M21 = 6;
+	/**
+	 * ZZ: Typically the unrotated Z component for scaling, also the cosine of
+	 * the angle when rotated on the X and/or Y axis. On Vector3 multiplication
+	 * this value is multiplied with the source Z component and added to the
+	 * target Z component.
+	 */
 	public static final int M22 = 10;
+	/**
+	 * ZW: Typically the translation of the Z component. On Vector3
+	 * multiplication this value is added to the target Z component.
+	 */
 	public static final int M23 = 14;
+	/**
+	 * WX: Typically the value zero. On Vector3 multiplication this value is
+	 * ignored.
+	 */
 	public static final int M30 = 3;
+	/**
+	 * WY: Typically the value zero. On Vector3 multiplication this value is
+	 * ignored.
+	 */
 	public static final int M31 = 7;
+	/**
+	 * WZ: Typically the value zero. On Vector3 multiplication this value is
+	 * ignored.
+	 */
 	public static final int M32 = 11;
+	/**
+	 * WW: Typically the value one. On Vector3 multiplication this value is
+	 * ignored.
+	 */
 	public static final int M33 = 15;
 
 	public final float t[] = new float[16];
 	public final float m[] = new float[16];
 
+	/** Constructs an identity matrix */
 	public Mat4f() {
 		m[M00] = 1f;
 		m[M11] = 1f;
@@ -29,44 +122,155 @@ public class Mat4f {
 		m[M33] = 1f;
 	}
 
+	/**
+	 * Constructs a matrix from the given matrix.
+	 * 
+	 * @param m
+	 *            - The matrix to copy. (This matrix is not modified)
+	 */
 	public Mat4f(Mat4f m) {
 		this.set(m);
 	}
 
+	/**
+	 * Constructs a matrix from the given float array. The array must have at
+	 * least 16 elements; the first 16 will be copied.
+	 * 
+	 * @param mA
+	 *            - The float array to copy. Remember that this matrix is in <a
+	 *            href="http://en.wikipedia.org/wiki/Row-major_order">column
+	 *            major</a> order. (The float array is not modified)
+	 */
 	public Mat4f(float[] mA) {
 		this.set(mA);
 	}
 
+	/**
+	 * Constructs a rotation matrix from the given {@link Quat}.
+	 * 
+	 * @param q
+	 *            - The quaternion to be copied. (The quaternion is not
+	 *            modified)
+	 */
 	public Mat4f(Quat q) {
 		this.set(q);
 	}
 
+	/**
+	 * Construct a matrix from the given translation, rotation and scale.
+	 * 
+	 * @param pos
+	 *            - The translation
+	 * @param rot
+	 *            - The rotation, must be normalized
+	 * @param scl
+	 *            - The scale
+	 */
 	public Mat4f(Vec3f pos, Quat rot, Vec3f scl) {
 		this.set(pos, rot, scl);
 	}
 
+	/**
+	 * Sets the matrix to the given matrix.
+	 * 
+	 * @param matrix
+	 *            - The matrix that is to be copied. (The given matrix is not
+	 *            modified)
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f set(Mat4f matrix) {
 		return set(matrix.m);
 	}
 
+	/**
+	 * Sets the matrix to the given matrix as a float array. The float array
+	 * must have at least 16 elements; the first 16 will be copied.
+	 * 
+	 * @param values
+	 *            - The matrix, in float form, that is to be copied. Remember
+	 *            that this matrix is in <a
+	 *            href="http://en.wikipedia.org/wiki/Row-major_order">column
+	 *            major</a> order.
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f set(float[] values) {
 		System.arraycopy(values, 0, m, 0, m.length);
 		return this;
 	}
 
+	/**
+	 * Sets the matrix to a rotation matrix representing the quaternion.
+	 * 
+	 * @param q
+	 *            - The quaternion that is to be used to set this matrix.
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f set(Quat q) {
 		return set(q.x(), q.y(), q.z(), q.w());
 	}
 
+	/**
+	 * Sets the matrix to a rotation matrix representing the quaternion.
+	 * 
+	 * @param qX
+	 *            - The X component of the quaternion that is to be used to set
+	 *            this matrix.
+	 * @param qY
+	 *            - The Y component of the quaternion that is to be used to set
+	 *            this matrix.
+	 * @param qZ
+	 *            - The Z component of the quaternion that is to be used to set
+	 *            this matrix.
+	 * @param qW
+	 *            - The W component of the quaternion that is to be used to set
+	 *            this matrix.
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f set(float qX, float qY, float qZ, float qW) {
 		return set(0f, 0f, 0f, qX, qY, qZ, qW);
 	}
 
+	/**
+	 * Set this matrix to the specified translation and rotation.
+	 * 
+	 * @param pos
+	 *            - The translation
+	 * @param ori
+	 *            - The rotation, must be normalized
+	 * @return This matrix for chaining
+	 */
 	public Mat4f set(Vec3f pos, Quat ori) {
 		return set(pos.x(), pos.y(), pos.z(), ori.x(), ori.y(), ori.z(),
 				ori.w());
 	}
 
+	/**
+	 * Sets the matrix to a rotation matrix representing the translation and
+	 * quaternion.
+	 * 
+	 * @param translationX
+	 *            - The X component of the translation that is to be used to set
+	 *            this matrix.
+	 * @param translationY
+	 *            - The Y component of the translation that is to be used to set
+	 *            this matrix.
+	 * @param translationZ
+	 *            - The Z component of the translation that is to be used to set
+	 *            this matrix.
+	 * @param quaternionX
+	 *            - The X component of the quaternion that is to be used to set
+	 *            this matrix.
+	 * @param quaternionY
+	 *            - The Y component of the quaternion that is to be used to set
+	 *            this matrix.
+	 * @param quaternionZ
+	 *            - The Z component of the quaternion that is to be used to set
+	 *            this matrix.
+	 * @param quaternionW
+	 *            - The W component of the quaternion that is to be used to set
+	 *            this matrix.
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f set(float translationX, float translationY,
 			float translationZ, float quaternionX, float quaternionY,
 			float quaternionZ, float quaternionW) {
@@ -99,12 +303,59 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Set this matrix to the specified translation, rotation and scale.
+	 * 
+	 * @param position
+	 *            - The translation
+	 * @param orientation
+	 *            - The rotation, must be normalized
+	 * @param scale
+	 *            - The scale
+	 * @return This matrix for chaining
+	 */
 	public Mat4f set(Vec3f position, Quat orientation, Vec3f scale) {
 		return set(position.x(), position.y(), position.z(), orientation.x(),
 				orientation.y(), orientation.z(), orientation.w(), scale.x(),
 				scale.y(), scale.z());
 	}
 
+	/**
+	 * Sets the matrix to a rotation matrix representing the translation and
+	 * quaternion.
+	 * 
+	 * @param translationX
+	 *            - The X component of the translation that is to be used to set
+	 *            this matrix.
+	 * @param translationY
+	 *            - The Y component of the translation that is to be used to set
+	 *            this matrix.
+	 * @param translationZ
+	 *            - The Z component of the translation that is to be used to set
+	 *            this matrix.
+	 * @param quaternionX
+	 *            - The X component of the quaternion that is to be used to set
+	 *            this matrix.
+	 * @param quaternionY
+	 *            - The Y component of the quaternion that is to be used to set
+	 *            this matrix.
+	 * @param quaternionZ
+	 *            - The Z component of the quaternion that is to be used to set
+	 *            this matrix.
+	 * @param quaternionW
+	 *            - The W component of the quaternion that is to be used to set
+	 *            this matrix.
+	 * @param scaleX
+	 *            - The X component of the scaling that is to be used to set
+	 *            this matrix.
+	 * @param scaleY
+	 *            - The Y component of the scaling that is to be used to set
+	 *            this matrix.
+	 * @param scaleZ
+	 *            - The Z component of the scaling that is to be used to set
+	 *            this matrix.
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f set(float translationX, float translationY,
 			float translationZ, float quaternionX, float quaternionY,
 			float quaternionZ, float quaternionW, float scaleX, float scaleY,
@@ -138,6 +389,21 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Sets the four columns of the matrix which correspond to the x-, y- and
+	 * z-axis of the vector space this matrix creates as well as the 4th column
+	 * representing the translation of any point that is multiplied by this
+	 * matrix.
+	 * 
+	 * @param xAxis
+	 *            - The x-axis.
+	 * @param yAxis
+	 *            - The y-axis.
+	 * @param zAxis
+	 *            - The z-axis.
+	 * @param pos
+	 *            - The translation vector.
+	 */
 	public Mat4f set(Vec3f xAxis, Vec3f yAxis, Vec3f zAxis, Vec3f pos) {
 		blank();
 		m[M00] = xAxis.x();
@@ -156,10 +422,16 @@ public class Mat4f {
 		return this;
 	}
 
+	/** @return a copy of this matrix */
 	public Mat4f copy() {
 		return new Mat4f(this);
 	}
 
+	/**
+	 * Sets the value of all the components of the matrix to zero
+	 * 
+	 * @return This matrix
+	 */
 	public Mat4f blank() {
 		m[M00] = 0f;
 		m[M01] = 0f;
@@ -183,6 +455,15 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Adds a translational component to the matrix in the 4th column. The other
+	 * columns are untouched.
+	 * 
+	 * @param vector
+	 *            - The translation vector to add to the current matrix. (This
+	 *            vector is not modified)
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f trans(Vec3f vector) {
 		m[M03] += vector.x();
 		m[M13] += vector.y();
@@ -190,6 +471,18 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Adds a translational component to the matrix in the 4th column. The other
+	 * columns are untouched.
+	 * 
+	 * @param x
+	 *            - The x-component of the translation vector.
+	 * @param y
+	 *            - The y-component of the translation vector.
+	 * @param z
+	 *            - The z-component of the translation vector.
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f trans(float x, float y, float z) {
 		m[M03] += x;
 		m[M13] += y;
@@ -197,6 +490,11 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Sets the matrix to an identity matrix.
+	 * 
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f initIdentity() {
 		blank();
 		m[M00] = 1f;
@@ -207,6 +505,11 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Sets the matrix to an translation matrix from a blank matrix.
+	 * 
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f initTranslation(float x, float y, float z) {
 		blank();
 		m[M00] = 1f;
@@ -220,6 +523,22 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Sets the matrix to a projection matrix with a near- and far plane, a
+	 * field of view in degrees and an aspect ratio. Note that the field of view
+	 * specified is the angle in degrees for the height, the field of view for
+	 * the width will be calculated according to the aspect ratio.
+	 * 
+	 * @param near
+	 *            - The near plane
+	 * @param far
+	 *            - The far plane
+	 * @param fovy
+	 *            - The field of view of the height in degrees
+	 * @param aspectRatio
+	 *            - The "width over height" aspect ratio
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f initPerspective(float fov, float aspectRatio, float zNear,
 			float zFar) {
 		initIdentity();
@@ -246,17 +565,69 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Sets this matrix to an orthographic projection matrix with the origin at
+	 * (x,y) extending by width and height. The near plane is set to 0, the far
+	 * plane is set to 1.
+	 * 
+	 * @param x
+	 *            - The x-coordinate of the origin
+	 * @param y
+	 *            - The y-coordinate of the origin
+	 * @param width
+	 *            - The width
+	 * @param height
+	 *            - The height
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f initOrtho2D(float x, float y, float width, float height) {
 		initOrtho(x, x + width, y, y + height, 0, 1);
 		return this;
 	}
 
+	/**
+	 * Sets this matrix to an orthographic projection matrix with the origin at
+	 * (x,y) extending by width and height, having a near and far plane.
+	 * 
+	 * @param x
+	 *            - The x-coordinate of the origin
+	 * @param y
+	 *            - The y-coordinate of the origin
+	 * @param width
+	 *            - The width
+	 * @param height
+	 *            - The height
+	 * @param near
+	 *            - The near plane
+	 * @param far
+	 *            - The far plane
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f initOrtho2D(float x, float y, float width, float height,
 			float near, float far) {
 		initOrtho(x, x + width, y, y + height, near, far);
 		return this;
 	}
 
+	/**
+	 * Sets the matrix to an orthographic projection like glOrtho
+	 * (http://www.opengl.org/sdk/docs/man/xhtml/glOrtho.xml) following the
+	 * OpenGL equivalent
+	 * 
+	 * @param left
+	 *            - The left clipping plane
+	 * @param right
+	 *            - The right clipping plane
+	 * @param bottom
+	 *            - The bottom clipping plane
+	 * @param top
+	 *            - The top clipping plane
+	 * @param near
+	 *            - The near clipping plane
+	 * @param far
+	 *            - The far clipping plane
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f initOrtho(float left, float right, float bottom, float top,
 			float near, float far) {
 
@@ -289,6 +660,13 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Sets the 4th column to the translation vector.
+	 * 
+	 * @param vector
+	 *            - The translation vector
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f setTranslation(Vec3f vector) {
 		m[M03] = vector.x();
 		m[M13] = vector.y();
@@ -296,6 +674,17 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Sets the 4th column to the translation vector.
+	 * 
+	 * @param x
+	 *            - The X coordinate of the translation vector
+	 * @param y
+	 *            - The Y coordinate of the translation vector
+	 * @param z
+	 *            - The Z coordinate of the translation vector
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f setTranslation(float x, float y, float z) {
 		m[M03] = x;
 		m[M13] = y;
@@ -303,6 +692,15 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Sets this matrix to a translation matrix, overwriting it first by an
+	 * identity matrix and then setting the 4th column to the translation
+	 * vector.
+	 * 
+	 * @param vector
+	 *            - The translation vector
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f setToTranslation(Vec3f vector) {
 		initIdentity();
 		m[M03] = vector.x();
@@ -311,6 +709,19 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Sets this matrix to a translation matrix, overwriting it first by an
+	 * identity matrix and then setting the 4th column to the translation
+	 * vector.
+	 * 
+	 * @param x
+	 *            - The x-component of the translation vector.
+	 * @param y
+	 *            - The y-component of the translation vector.
+	 * @param z
+	 *            - The z-component of the translation vector.
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f setToTranslation(float x, float y, float z) {
 		initIdentity();
 		m[M03] = x;
@@ -319,6 +730,17 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Sets this matrix to a translation and scaling matrix by first overwriting
+	 * it with an identity and then setting the translation vector in the 4th
+	 * column and the scaling vector in the diagonal.
+	 * 
+	 * @param translation
+	 *            - The translation vector
+	 * @param scaling
+	 *            - The scaling vector
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f setToTranslationAndScaling(Vec3f translation, Vec3f scaling) {
 		initIdentity();
 		m[M03] = translation.x();
@@ -330,6 +752,25 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Sets this matrix to a translation and scaling matrix by first overwriting
+	 * it with an identity and then setting the translation vector in the 4th
+	 * column and the scaling vector in the diagonal.
+	 * 
+	 * @param translationX
+	 *            - The x-component of the translation vector
+	 * @param translationY
+	 *            - The y-component of the translation vector
+	 * @param translationZ
+	 *            - The z-component of the translation vector
+	 * @param scalingX
+	 *            - The x-component of the scaling vector
+	 * @param scalingY
+	 *            - The x-component of the scaling vector
+	 * @param scalingZ
+	 *            - The x-component of the scaling vector
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f setToTranslationAndScaling(float traX, float traY, float traZ,
 			float sclX, float sclY, float sclZ) {
 		initIdentity();
@@ -342,10 +783,21 @@ public class Mat4f {
 		return this;
 	}
 
-	static final Mat4f rx = new Mat4f().blank();
-	static final Mat4f ry = new Mat4f().blank();
-	static final Mat4f rz = new Mat4f().blank();
+	private static final Mat4f rx = new Mat4f().blank();
+	private static final Mat4f ry = new Mat4f().blank();
+	private static final Mat4f rz = new Mat4f().blank();
 
+	/**
+	 * Creates a matrix that is rotated from given x, y, z values,
+	 * 
+	 * @param x
+	 *            - x coordinate
+	 * @param y
+	 *            - y coordinate
+	 * @param z
+	 *            - z coordinate
+	 * @return this matrix
+	 */
 	public Mat4f initRotation(float x, float y, float z) {
 
 		x = (float) MC.toR(x);
@@ -378,57 +830,149 @@ public class Mat4f {
 		return this;
 	}
 
-	static Quat quat = new Quat();
-	static Quat quat2 = new Quat();
+	private static Quat quat1 = new Quat();
+	private static Quat quat2 = new Quat();
 
+	/**
+	 * Sets the matrix to a rotation matrix around the given axis.
+	 * 
+	 * @param axis
+	 *            - The axis
+	 * @param degrees
+	 *            - The angle in degrees
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f setToRotation(Vec3f axis, float degrees) {
 		if (degrees == 0) {
 			initIdentity();
 			return this;
 		}
-		return set(quat.set(axis, degrees));
+		return set(quat1.set(axis, degrees));
 	}
 
+	/**
+	 * Sets the matrix to a rotation matrix around the given axis.
+	 * 
+	 * @param axis
+	 *            - The axis
+	 * @param radians
+	 *            - The angle in radians
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f setToRotationRad(Vec3f axis, float radians) {
 		if (radians == 0) {
 			initIdentity();
 			return this;
 		}
-		return set(quat.setFromAxisRad(axis, radians));
+		return set(quat1.setFromAxisRad(axis, radians));
 	}
 
+	/**
+	 * Sets the matrix to a rotation matrix around the given axis.
+	 * 
+	 * @param axisX
+	 *            - The x-component of the axis
+	 * @param axisY
+	 *            - The y-component of the axis
+	 * @param axisZ
+	 *            - The z-component of the axis
+	 * @param degrees
+	 *            - The angle in degrees
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f setToRotation(float axisX, float axisY, float axisZ,
 			float degrees) {
 		if (degrees == 0) {
 			initIdentity();
 			return this;
 		}
-		return set(quat.setFromAxis(axisX, axisY, axisZ, degrees));
+		return set(quat1.setFromAxis(axisX, axisY, axisZ, degrees));
 	}
 
+	/**
+	 * Sets the matrix to a rotation matrix around the given axis.
+	 * 
+	 * @param axisX
+	 *            - The x-component of the axis
+	 * @param axisY
+	 *            - The y-component of the axis
+	 * @param axisZ
+	 *            - The z-component of the axis
+	 * @param radians
+	 *            - The angle in radians
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f setToRotationRad(float axisX, float axisY, float axisZ,
 			float radians) {
 		if (radians == 0) {
 			initIdentity();
 			return this;
 		}
-		return set(quat.setFromAxisRad(axisX, axisY, axisZ, radians));
+		return set(quat1.setFromAxisRad(axisX, axisY, axisZ, radians));
 	}
 
+	/**
+	 * Set the matrix to a rotation matrix between two vectors.
+	 * 
+	 * @param v1
+	 *            - The base vector
+	 * @param v2
+	 *            - The target vector
+	 * @return This matrix for the purpose of chaining methods together
+	 */
 	public Mat4f setToRotation(final Vec3f v1, final Vec3f v2) {
-		return set(quat.setFromCross(v1, v2));
+		return set(quat1.setFromCross(v1, v2));
 	}
 
+	/**
+	 * Set the matrix to a rotation matrix between two vectors.
+	 * 
+	 * @param x1
+	 *            - The base vectors x value
+	 * @param y1
+	 *            - The base vectors y value
+	 * @param z1
+	 *            - The base vectors z value
+	 * @param x2
+	 *            - The target vector x value
+	 * @param y2
+	 *            - The target vector y value
+	 * @param z2
+	 *            - The target vector z value
+	 * @return This matrix for the purpose of chaining methods together
+	 */
 	public Mat4f setToRotation(final float x1, final float y1, final float z1,
 			final float x2, final float y2, final float z2) {
-		return set(quat.setFromCross(x1, y1, z1, x2, y2, z2));
+		return set(quat1.setFromCross(x1, y1, z1, x2, y2, z2));
 	}
 
+	/**
+	 * Sets this matrix to a rotation matrix from the given euler angles.
+	 * 
+	 * @param yaw
+	 *            - the yaw in degrees
+	 * @param pitch
+	 *            - the pitch in degrees
+	 * @param roll
+	 *            - the roll in degrees
+	 * @return This matrix
+	 */
 	public Mat4f setFromEulerAngles(float yaw, float pitch, float roll) {
-		quat.setEulerAngles(yaw, pitch, roll);
-		return set(quat);
+		quat1.setEulerAngles(yaw, pitch, roll);
+		return set(quat1);
 	}
 
+	/**
+	 * Creates a Matrix from a 3d vector
+	 * 
+	 * @param x
+	 *            - x-coordinate
+	 * @param y
+	 *            - y-coordinate
+	 * @param z
+	 *            - z-coordinate
+	 * @return This matrix
+	 */
 	public Mat4f initScale(float x, float y, float z) {
 		blank();
 		m[M00] = x;
@@ -438,6 +982,13 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Creates a Matrix from a 3d vector
+	 * 
+	 * @param v
+	 *            - this 3d vector
+	 * @return This Vector
+	 */
 	public Mat4f initScale(Vec3f v) {
 		blank();
 		m[M00] = v.x();
@@ -447,6 +998,13 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Sets this matrix to a scaling matrix
+	 * 
+	 * @param vector
+	 *            - The scaling vector
+	 * @return This matrix for chaining.
+	 */
 	public Mat4f setToScaling(Vec3f vector) {
 		initIdentity();
 		m[M00] = vector.x();
@@ -455,6 +1013,17 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Sets this matrix to a scaling matrix
+	 * 
+	 * @param x
+	 *            - The x-component of the scaling vector
+	 * @param y
+	 *            - The y-component of the scaling vector
+	 * @param z
+	 *            - The z-component of the scaling vector
+	 * @return This matrix for chaining.
+	 */
 	public Mat4f setToScaling(float x, float y, float z) {
 		initIdentity();
 		m[M00] = x;
@@ -467,6 +1036,16 @@ public class Mat4f {
 	static final Vec3f l_vex = new Vec3f();
 	static final Vec3f l_vey = new Vec3f();
 
+	/**
+	 * Sets the matrix to a look at matrix with a direction and an up vector.
+	 * Multiply with a translation matrix to get a camera model view matrix.
+	 * 
+	 * @param direction
+	 *            - The direction vector
+	 * @param up
+	 *            - The up vector
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f setToLookAt(Vec3f direction, Vec3f up) {
 		l_vez.set(direction).normalize();
 		l_vex.set(direction).normalize();
@@ -489,6 +1068,18 @@ public class Mat4f {
 	static final Vec3f tmpVec = new Vec3f();
 	static final Mat4f tmpMat = new Mat4f();
 
+	/**
+	 * Sets this matrix to a look at matrix with the given position, target and
+	 * up vector.
+	 * 
+	 * @param position
+	 *            - the position
+	 * @param target
+	 *            - the target
+	 * @param up
+	 *            - the up vector
+	 * @return This matrix
+	 */
 	public Mat4f setToLookAt(Vec3f position, Vec3f target, Vec3f up) {
 		tmpVec.set(target).sub(position);
 		setToLookAt(tmpVec, up);
@@ -511,18 +1102,39 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Linearly interpolates between this matrix and the given matrix mixing by
+	 * alpha
+	 * 
+	 * @param matrix
+	 *            - the matrix
+	 * @param alpha
+	 *            - the alpha value in the range [0,1]
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f lerp(Mat4f matrix, float alpha) {
 		for (int i = 0; i < 16; i++)
 			this.m[i] = this.m[i] * (1 - alpha) + matrix.m[i] * alpha;
 		return this;
 	}
 
+	/**
+	 * Averages the given transform with this one and stores the result in this
+	 * matrix. Translations and scales are lerped while rotations are slerped.
+	 * 
+	 * @param other
+	 *            - The other transform
+	 * @param w
+	 *            - Weight of this transform; weight of the other transform is
+	 *            (1 - w)
+	 * @return This matrix for chaining
+	 */
 	public Mat4f average(Mat4f other, float w) {
 
 		getScale(tmpVec);
 		other.getScale(tmpForward);
 
-		getRotation(quat);
+		getRotation(quat1);
 		other.getRotation(quat2);
 
 		getTranslation(tmpUp);
@@ -530,19 +1142,28 @@ public class Mat4f {
 
 		setToScaling(tmpVec.mul(w).add(tmpForward.mul(1 - w)));
 
-		rotate(quat.slerp(quat2, 1 - w));
+		rotate(quat1.slerp(quat2, 1 - w));
 
 		setTranslation(tmpUp.mul(w).add(right.mul(1 - w)));
 
 		return this;
 	}
 
+	/**
+	 * Averages the given transforms and stores the result in this matrix.
+	 * Translations and scales are lerped while rotations are slerped. Does not
+	 * destroy the data contained in t.
+	 * 
+	 * @param t
+	 *            - List of transforms
+	 * @return This matrix for chaining
+	 */
 	public Mat4f avg(Mat4f[] t) {
 		final float w = 1.0f / t.length;
 
 		tmpVec.set(t[0].getScale(tmpUp).mul(w));
 
-		quat.set(t[0].getRotation(quat2).exp(w));
+		quat1.set(t[0].getRotation(quat2).exp(w));
 
 		tmpForward.set(t[0].getTranslation(tmpUp).mul(w));
 
@@ -550,24 +1171,36 @@ public class Mat4f {
 
 			tmpVec.add(t[i].getScale(tmpUp).mul(w));
 
-			quat.mul(t[i].getRotation(quat2).exp(w));
+			quat1.mul(t[i].getRotation(quat2).exp(w));
 
 			tmpForward.add(t[i].getTranslation(tmpUp).mul(w));
 		}
-		quat.normalize();
+		quat1.normalize();
 
 		setToScaling(tmpVec);
-		rotate(quat);
+		rotate(quat1);
 		setTranslation(tmpForward);
 
 		return this;
 	}
 
+	/**
+	 * Averages the given transforms with the given weights and stores the
+	 * result in this matrix. Translations and scales are lerped while rotations
+	 * are slerped. Does not destroy the data contained in t or w; Sum of w_i
+	 * must be equal to 1, or unexpected results will occur.
+	 * 
+	 * @param t
+	 *            - List of transforms
+	 * @param w
+	 *            - List of weights
+	 * @return This matrix for chaining
+	 */
 	public Mat4f avg(Mat4f[] t, float[] w) {
 
 		tmpVec.set(t[0].getScale(tmpUp).mul(w[0]));
 
-		quat.set(t[0].getRotation(quat2).exp(w[0]));
+		quat1.set(t[0].getRotation(quat2).exp(w[0]));
 
 		tmpForward.set(t[0].getTranslation(tmpUp).mul(w[0]));
 
@@ -575,14 +1208,14 @@ public class Mat4f {
 
 			tmpVec.add(t[i].getScale(tmpUp).mul(w[i]));
 
-			quat.mul(t[i].getRotation(quat2).exp(w[i]));
+			quat1.mul(t[i].getRotation(quat2).exp(w[i]));
 
 			tmpForward.add(t[i].getTranslation(tmpUp).mul(w[i]));
 		}
-		quat.normalize();
+		quat1.normalize();
 
 		setToScaling(tmpVec);
-		rotate(quat);
+		rotate(quat1);
 		setTranslation(tmpForward);
 
 		return this;
@@ -593,45 +1226,75 @@ public class Mat4f {
 		return pos;
 	}
 
+	/**
+	 * Gets the rotation of this matrix.
+	 * 
+	 * @param rotation
+	 *            - The {@link Quat} to receive the rotation
+	 * @param normalizeAxes
+	 *            - True to normalize the axes, necessary when the matrix might
+	 *            also include scaling.
+	 * @return The provided {@link Quat} for chaining.
+	 */
 	public Quat getRotation(Quat rot, boolean normalizeAxes) {
 		return rot.setFromMatrix(normalizeAxes, this);
 	}
 
+	/**
+	 * Gets the rotation of this matrix.
+	 * 
+	 * @param rotation
+	 *            - The {@link Quat} to receive the rotation
+	 * @return The provided {@link Quat} for chaining.
+	 */
 	public Quat getRotation(Quat rotation) {
 		return rotation.setFromMatrix(this);
 	}
 
+	/** @return the squared scale factor on the X axis */
 	public float getScaleXSquared() {
 		return m[M00] * m[M00] + m[M01] * m[M01] + m[M02] * m[M02];
 	}
 
+	/** @return the squared scale factor on the Y axis */
 	public float getScaleYSquared() {
 		return m[M10] * m[M10] + m[M11] * m[M11] + m[M12] * m[M12];
 	}
 
+	/** @return the squared scale factor on the Z axis */
 	public float getScaleZSquared() {
 		return m[M20] * m[M20] + m[M21] * m[M21] + m[M22] * m[M22];
 	}
 
+	/** @return the scale factor on the X axis (non-negative) */
 	public float getScaleX() {
 		return (MC.isZero(m[M01]) && MC.isZero(m[M02])) ? Math.abs(m[M00])
 				: (float) Math.sqrt(getScaleXSquared());
 	}
 
+	/** @return the scale factor on the Y axis (non-negative) */
 	public float getScaleY() {
 		return (MC.isZero(m[M10]) && MC.isZero(m[M12])) ? Math.abs(m[M11])
 				: (float) Math.sqrt(getScaleYSquared());
 	}
 
+	/** @return the scale factor on the X axis (non-negative) */
 	public float getScaleZ() {
 		return (MC.isZero(m[M20]) && MC.isZero(m[M21])) ? Math.abs(m[M22])
 				: (float) Math.sqrt(getScaleZSquared());
 	}
 
+	/**
+	 * @param scale
+	 *            - The vector which will receive the (non-negative) scale
+	 *            components on each axis.
+	 * @return The provided vector for chaining.
+	 */
 	public Vec3f getScale(Vec3f scale) {
 		return scale.set(getScaleX(), getScaleY(), getScaleZ());
 	}
 
+	/** removes the translational part and transposes the matrix. */
 	public Mat4f toNormalMatrix() {
 		m[M03] = 0;
 		m[M13] = 0;
@@ -659,10 +1322,30 @@ public class Mat4f {
 		return set(t);
 	}
 
+	/**
+	 * Postmultiplies this matrix by a translation matrix. Postmultiplication is
+	 * also used by OpenGL ES' glTranslate/glRotate/glScale
+	 * 
+	 * @param translation
+	 *            - the translation vector
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f translate(Vec3f translation) {
 		return translate(translation.x(), translation.y(), translation.z());
 	}
 
+	/**
+	 * Postmultiplies this matrix by a translation matrix. Postmultiplication is
+	 * also used by OpenGL ES' 1.x glTranslate/glRotate/glScale.
+	 * 
+	 * @param x
+	 *            - Translation in the x-axis.
+	 * @param y
+	 *            - Translation in the y-axis.
+	 * @param z
+	 *            - Translation in the z-axis.
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f translate(float x, float y, float z) {
 		t[M00] = 1;
 		t[M01] = 0;
@@ -685,44 +1368,126 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Postmultiplies this matrix with a (counter-clockwise) rotation matrix.
+	 * Postmultiplication is also used by OpenGL ES' 1.x
+	 * glTranslate/glRotate/glScale.
+	 * 
+	 * @param axis
+	 *            - The vector axis to rotate around.
+	 * @param degrees
+	 *            - The angle in degrees.
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f rotate(Vec3f axis, float degrees) {
 		if (degrees == 0)
 			return this;
-		quat.set(axis, degrees);
-		return rotate(quat);
+		quat1.set(axis, degrees);
+		return rotate(quat1);
 	}
 
+	/**
+	 * Postmultiplies this matrix with a (counter-clockwise) rotation matrix.
+	 * Postmultiplication is also used by OpenGL ES' 1.x
+	 * glTranslate/glRotate/glScale.
+	 * 
+	 * @param axis
+	 *            - The vector axis to rotate around.
+	 * @param radians
+	 *            - The angle in radians.
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f rotateRad(Vec3f axis, float radians) {
 		if (radians == 0)
 			return this;
-		quat.setFromAxisRad(axis, radians);
-		return rotate(quat);
+		quat1.setFromAxisRad(axis, radians);
+		return rotate(quat1);
 	}
 
+	/**
+	 * Postmultiplies this matrix with a (counter-clockwise) rotation matrix.
+	 * Postmultiplication is also used by OpenGL ES' 1.x
+	 * glTranslate/glRotate/glScale
+	 * 
+	 * @param axisX
+	 *            - The x-axis component of the vector to rotate around.
+	 * @param axisY
+	 *            - The y-axis component of the vector to rotate around.
+	 * @param axisZ
+	 *            - The z-axis component of the vector to rotate around.
+	 * @param degrees
+	 *            - The angle in degrees
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f rotate(float axisX, float axisY, float axisZ, float degrees) {
 		if (degrees == 0)
 			return this;
-		quat.setFromAxis(axisX, axisY, axisZ, degrees);
-		return rotate(quat);
+		quat1.setFromAxis(axisX, axisY, axisZ, degrees);
+		return rotate(quat1);
 	}
 
+	/**
+	 * Postmultiplies this matrix with a (counter-clockwise) rotation matrix.
+	 * Postmultiplication is also used by OpenGL ES' 1.x
+	 * glTranslate/glRotate/glScale
+	 * 
+	 * @param axisX
+	 *            - The x-axis component of the vector to rotate around.
+	 * @param axisY
+	 *            - The y-axis component of the vector to rotate around.
+	 * @param axisZ
+	 *            - The z-axis component of the vector to rotate around.
+	 * @param radians
+	 *            - The angle in radians
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f rotateRad(float axisX, float axisY, float axisZ, float radians) {
 		if (radians == 0)
 			return this;
-		quat.setFromAxisRad(axisX, axisY, axisZ, radians);
-		return rotate(quat);
+		quat1.setFromAxisRad(axisX, axisY, axisZ, radians);
+		return rotate(quat1);
 	}
 
+	/**
+	 * Postmultiplies this matrix with a (counter-clockwise) rotation matrix.
+	 * Postmultiplication is also used by OpenGL ES' 1.x
+	 * glTranslate/glRotate/glScale.
+	 * 
+	 * @param rotation
+	 *            - the rotation vector
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f rotate(Quat rotation) {
 		rotation.toMatrix(t);
 		mul(m, t);
 		return this;
 	}
 
+	/**
+	 * Postmultiplies this matrix by the rotation between two vectors.
+	 * 
+	 * @param v1
+	 *            - The base vector
+	 * @param v2
+	 *            - The target vector
+	 * @return This matrix for the purpose of chaining methods together
+	 */
 	public Mat4f rotate(final Vec3f v1, final Vec3f v2) {
-		return rotate(quat.setFromCross(v1, v2));
+		return rotate(quat1.setFromCross(v1, v2));
 	}
 
+	/**
+	 * Postmultiplies this matrix with a scale matrix. Postmultiplication is
+	 * also used by OpenGL ES' 1.x glTranslate/glRotate/glScale.
+	 * 
+	 * @param scaleX
+	 *            - The scale in the x-axis.
+	 * @param scaleY
+	 *            - The scale in the y-axis.
+	 * @param scaleZ
+	 *            - The scale in the z-axis.
+	 * @return This matrix for the purpose of chaining methods together.
+	 */
 	public Mat4f scale(float scaleX, float scaleY, float scaleZ) {
 		t[M00] = scaleX;
 		t[M01] = 0;
@@ -745,6 +1510,13 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Copies the 4x3 upper-left sub-matrix into float array. The destination
+	 * array is supposed to be a column major matrix.
+	 * 
+	 * @param dst
+	 *            - the destination matrix
+	 */
 	public void extract4x3Matrix(float[] dst) {
 		dst[0] = m[M00];
 		dst[1] = m[M10];
@@ -760,6 +1532,13 @@ public class Mat4f {
 		dst[11] = m[M23];
 	}
 
+	/**
+	 * Inverts the matrix. Stores the result in this matrix.
+	 * 
+	 * @return This matrix for the purpose of chaining methods together.
+	 * @throws SigmaException
+	 *             if the matrix is singular (not invertible)
+	 */
 	public Mat4f inverse() {
 		float l_det = m[M30] * m[M21] * m[M12] * m[M03] - m[M20] * m[M31]
 				* m[M12] * m[M03] - m[M30] * m[M11] * m[M22] * m[M03] + m[M10]
@@ -776,7 +1555,7 @@ public class Mat4f {
 				* m[M33] - m[M00] * m[M21] * m[M12] * m[M33] - m[M10] * m[M01]
 				* m[M22] * m[M33] + m[M00] * m[M11] * m[M22] * m[M33];
 		if (l_det == 0f)
-			throw new RuntimeException("non-invertible matrix");
+			throw new SigmaException("non-invertible matrix");
 		float inv_det = 1.0f / l_det;
 		t[M00] = m[M12] * m[M23] * m[M31] - m[M13] * m[M22] * m[M31] + m[M13]
 				* m[M21] * m[M32] - m[M11] * m[M23] * m[M32] - m[M12] * m[M21]
@@ -845,6 +1624,7 @@ public class Mat4f {
 		return this;
 	}
 
+	/** @return The determinant of this matrix */
 	public float determinant() {
 		return m[M30] * m[M21] * m[M12] * m[M03] - m[M20] * m[M31] * m[M12]
 				* m[M03] - m[M30] * m[M11] * m[M22] * m[M03] + m[M10] * m[M31]
@@ -862,6 +1642,13 @@ public class Mat4f {
 				* m[M33] + m[M00] * m[M11] * m[M22] * m[M33];
 	}
 
+	/**
+	 * Scales the matrix by a given vector
+	 * 
+	 * @param scale
+	 *            - scale vector
+	 * @return this matrix
+	 */
 	public Mat4f scale(Vec3f scale) {
 		m[M00] *= scale.x();
 		m[M11] *= scale.y();
@@ -869,6 +1656,17 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Scales the matrix by a given vector
+	 * 
+	 * @param x
+	 *            - x-component of vector
+	 * @param y
+	 *            - y-component of vector
+	 * @param z
+	 *            - z-component of vector
+	 * @return This Matrix
+	 */
 	public Mat4f scl(float x, float y, float z) {
 		m[M00] *= x;
 		m[M11] *= y;
@@ -876,6 +1674,13 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Scales the matrix by a given scalar quantity
+	 * 
+	 * @param scale
+	 *            - scalar quantity
+	 * @return This Matrix
+	 */
 	public Mat4f scl(float scale) {
 		m[M00] *= scale;
 		m[M11] *= scale;
@@ -883,29 +1688,49 @@ public class Mat4f {
 		return this;
 	}
 
+	/**
+	 * Multiplies all the values of the matrix by a given scalar quantity
+	 * 
+	 * @param s
+	 *            -the scalar quantity
+	 * @return this matrix
+	 */
 	public Mat4f mul(float s) {
 		m[M00] *= s;
 		m[M01] *= s;
 		m[M02] *= s;
 		m[M03] *= s;
-		
+
 		m[M10] *= s;
 		m[M11] *= s;
 		m[M12] *= s;
 		m[M13] *= s;
-		
+
 		m[M20] *= s;
 		m[M21] *= s;
 		m[M22] *= s;
 		m[M23] *= s;
-		
+
 		m[M30] *= s;
 		m[M31] *= s;
 		m[M32] *= s;
 		m[M33] *= s;
-		
+
 		return this;
 	}
+
+	/**
+	 * Postmultiplies this matrix with the given matrix, storing the result in
+	 * this matrix. For example:
+	 * 
+	 * <pre>
+	 * A.mul(B) results in A := AB.
+	 * </pre>
+	 * 
+	 * @param matrix
+	 *            - The other matrix to multiply by.
+	 * @return This matrix for the purpose of chaining operations together.
+	 */
 	public Mat4f mul(Mat4f matrix) {
 		mul(m, matrix.m);
 		return this;
@@ -913,6 +1738,16 @@ public class Mat4f {
 
 	static final float[] res = new float[16];
 
+	/**
+	 * Multiplies the matrix a with matrix b, storing the result in a. The
+	 * arrays are assumed to hold 4x4 column major matrices as you can get from
+	 * {@link Mat4f#m}. This is the same as {@link Mat4f#mul(Mat4f)}.
+	 *
+	 * @param a
+	 *            - the first matrix.
+	 * @param b
+	 *            - the second matrix.
+	 */
 	public static void mul(float[] a, float[] b) {
 		res[M00] = (a[M00] * b[M00]) + (a[M01] * b[M10]) + (a[M02] * b[M20])
 				+ (a[M03] * b[M30]);
@@ -952,10 +1787,23 @@ public class Mat4f {
 		System.arraycopy(res, 0, a, 0, 16);
 	}
 
+	/**
+	 * @return the matrix float array, which stores all its values
+	 */
 	public float[] getMatrix() {
 		return m;
 	}
 
+	/**
+	 * Returns the value of a component of the array, specified by x and y
+	 * 
+	 * @param x
+	 *            - the x coordinate of the array
+	 * @param y
+	 *            - the y coordinate of the array
+	 * @return a float value, equal to the corresponding value in the array at
+	 *         that value
+	 */
 	public float get(int x, int y) {
 		return m[x + y * 4];
 	}
